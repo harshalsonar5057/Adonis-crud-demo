@@ -12,20 +12,25 @@ const profileSchema = schema.create({
 });
 
 export default class ProfilesController {
-  public async index({ request, response }: HttpContextContract) {
+  public async index({ response }: HttpContextContract) {
     const profileData = await Profile.all();
     return response.status(200).json({ data: profileData });
   }
 
   public async store({ request, response }: HttpContextContract) {
-    const payload = await request.validate({ schema: profileSchema });
-    const profile = await Profile.create({ ...payload });
-    return response
-      .status(201)
-      .json({ message: "Profile created successfully.", data: profile });
+    try {
+      const payload = await request.validate({ schema: profileSchema });
+      const profile = await Profile.create({ ...payload });
+      return response
+        .status(201)
+        .json({ message: "Profile created successfully.", data: profile });
+    } catch (error) {
+      return response.badRequest(error.messages);
+    }
+
   }
 
-  public async show({ request, response, params }: HttpContextContract) {
+  public async show({ response, params }: HttpContextContract) {
     try {
       const userId = params.userId;
 
@@ -66,5 +71,27 @@ export default class ProfilesController {
       .json({ message: "Profile updated successfully.", data: profile });
   }
 
-  public async destroy({}: HttpContextContract) {}
+  public async deleteByMobile({ params, response }: HttpContextContract) {
+    try {
+      const { mobile } = params;
+
+      const profile = await Profile.findBy("mobile", mobile);
+      if (!profile) {
+        return response.status(404).json({ error: "Profile not found" });
+      }
+      // Find user associated with the profile
+      const user = await profile.related("user").query().firstOrFail();
+
+      await profile.delete();
+
+      await user.delete();
+
+      return response
+        .status(200)
+        .json({ message: "User and profile deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      return response.status(500).json({ error: "Internal server error" });
+    }
+  }
 }

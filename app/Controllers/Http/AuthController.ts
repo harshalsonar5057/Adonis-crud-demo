@@ -2,6 +2,8 @@ import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import Hash from "@ioc:Adonis/Core/Hash";
+import jwt from 'jsonwebtoken';
+import Env from '@ioc:Adonis/Core/Env'
 
 const userSchema = schema.create({
   email: schema.string({}, [rules.email()]),
@@ -17,26 +19,26 @@ export default class AuthController {
     return response.status(200).json({ data: users });
   }
 
-  public async login({ request, auth, response }) {
+  public async login({ request, response }) {
     try {
       const payload = await request.validate({ schema: userSchema });
       const user: User | null = await User.findBy("email", payload.email);
-      console.log("users :", user?.$original.password);
+      if (!user) {
+        return response.status(404).json({ message: "user not found." });
+      }
       const savedPassword = user?.$original.password;
       const isPasswordValid = await Hash.verify(
         savedPassword,
         payload.password
       );
-      console.log("isPasswordValid :", isPasswordValid);
-
       if (!isPasswordValid) {
         return response.unauthorized("Invalid credentials");
       }
-      const token = await auth.use("api").generate(user);
-      console.log("token :>> ", token);
-      return user;
+      const secretkey =  Env.get('JWT_SECRET');
+      const token = jwt.sign({ userId:user?.$original.id, email: payload.email}, secretkey, { expiresIn: '1h' });
+      return response.status(200).json({ token, user });
     } catch (error) {
-      response.badRequest(error.messages);
+      return response.badRequest(error.messages);
     }
   }
 
@@ -51,20 +53,12 @@ export default class AuthController {
       user.password = hashedPassword;
 
       await user.save();
-      //  user.password  = ''
       return response
         .status(200)
         .json({ messages: "User registered successfully.", data: user });
     } catch (error) {
-      response.badRequest(error.messages);
+     return response.badRequest(error.messages);
     }
   }
 
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
-
-  public async destroy({}: HttpContextContract) {}
 }
