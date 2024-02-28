@@ -20,6 +20,7 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 import AuthController from 'App/Controllers/Http/AuthController'
+import ProfilesController from 'App/Controllers/Http/ProfilesController'
 
 Route.get('/', async () => {
   return { hello: 'world' }
@@ -30,6 +31,20 @@ Route.get('/register', async (ctx) => {
 Route.post('/register', async (ctx) => {
   return new AuthController().store(ctx)
 })
-Route.post('/login', async (ctx) => {
-  return new AuthController().login(ctx)
+Route.post('/login', async ({ auth, request, response }) => {
+  return new AuthController().login({ auth, request, response })
+})
+
+// Profile routes
+Route.get('/user/profile', async (ctx) => {
+  return new ProfilesController().index(ctx)
+})
+Route.get('/user/profile/:userId', async (ctx) => {
+  return new ProfilesController().show(ctx)
+})
+Route.post('/user/profile', async (ctx) => {
+  return new ProfilesController().store(ctx)
+})
+Route.put('/user/profile/:id', async (ctx) => {
+  return new ProfilesController().update(ctx)
 })
