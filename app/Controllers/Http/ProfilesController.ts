@@ -25,7 +25,7 @@ export default class ProfilesController {
         .status(201)
         .json({ message: "Profile created successfully.", data: profile });
     } catch (error) {
-      return response.badRequest(error.messages);
+      return response.badRequest(error);
     }
   }
 

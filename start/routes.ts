@@ -29,7 +29,7 @@ Route.post("login", "AuthController.login");
 
 // Profile routes
 Route.group(() => {
-Route.get("user/profile", "ProfilesController.index");
+Route.get("user/profile", "ProfilesController.index")
 
 Route.get("user/profile/:userId", "ProfilesController.show");
 
@@ -40,4 +40,4 @@ Route.put("user/profile/:id", "ProfilesController.update");
 Route.delete("user/profile/:mobile", "ProfilesController.deleteByMobile");
 
 Route.post('logout', "AuthController.logout")
-}).middleware("auth:web,api");
+}).middleware("auth");
