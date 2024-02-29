@@ -27,7 +27,7 @@ export default class AuthController {
       return response.badRequest(error);
     }
   }
-  public async logout({ auth, request, response }) {
+  public async logout({ auth, response }) {
     try {
       await auth.use("api").revoke();
       return {
