@@ -27,7 +27,6 @@ export default class ProfilesController {
     } catch (error) {
       return response.badRequest(error.messages);
     }
-
   }
 
   public async show({ response, params }: HttpContextContract) {
@@ -56,19 +55,23 @@ export default class ProfilesController {
   }
 
   public async update({ request, response, params }: HttpContextContract) {
-    const profileId = params.id;
-    const payload = await request.validate({ schema: profileSchema });
+    try {
+      const profileId = params.id;
+      const payload = await request.validate({ schema: profileSchema });
 
-    const profile: Profile | null = await Profile.findBy("id", profileId);
-    if (!profile) {
-      return response.status(404).json({ message: "Profile not found." });
+      const profile: Profile | null = await Profile.findBy("id", profileId);
+      if (!profile) {
+        return response.status(404).json({ message: "Profile not found." });
+      }
+      profile.merge(payload);
+      await profile.save();
+
+      return response
+        .status(200)
+        .json({ message: "Profile updated successfully.", data: profile });
+    } catch (error) {
+      return response.badRequest(error);
     }
-    profile.merge(payload);
-    await profile.save();
-
-    return response
-      .status(200)
-      .json({ message: "Profile updated successfully.", data: profile });
   }
 
   public async deleteByMobile({ params, response }: HttpContextContract) {
@@ -90,8 +93,7 @@ export default class ProfilesController {
         .status(200)
         .json({ message: "User and profile deleted successfully" });
     } catch (error) {
-      console.error(error);
-      return response.status(500).json({ error: "Internal server error" });
+      return response.badRequest(error);
     }
   }
 }
