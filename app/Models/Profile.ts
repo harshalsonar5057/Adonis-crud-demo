@@ -2,6 +2,10 @@ import { DateTime } from "luxon";
 import { BaseModel, BelongsTo, belongsTo, column } from "@ioc:Adonis/Lucid/Orm";
 import User from "./User";
 
+enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
 export default class Profile extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
@@ -13,10 +17,10 @@ export default class Profile extends BaseModel {
   public name: string;
 
   @column()
-  public mobile: string;
+  public mobile: number;
 
   @column()
-  public gender: string;
+  public gender: Gender;
 
   @column.dateTime()
   public dateOfBirth: DateTime;

@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.increments('id')
       table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       table.string('name', 30).notNullable()
-      table.string('mobile', 10).notNullable().unique()
+      table.bigInteger('mobile').notNullable().unique()
       table.enum('gender', ['MALE', 'FEMALE']).notNullable()
       table.date('date_of_birth').notNullable()
 

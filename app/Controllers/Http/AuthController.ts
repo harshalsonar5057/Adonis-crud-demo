@@ -14,7 +14,7 @@ export default class AuthController {
   public async login({ auth, request, response }) {
     try {
       const payload = await request.validate({ schema: userSchema });
-      const user: User | null = await User.findBy("email", payload.email);
+      const user = await User.findBy("email", payload.email);
 
       if (!user) {
         return response.status(404).json({ message: "user not found." });

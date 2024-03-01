@@ -3,27 +3,36 @@ import Profile from "App/Models/Profile";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import User from "App/Models/User";
 
+enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
+
 const profileSchema = schema.create({
   userId: schema.number(),
   name: schema.string({}, [rules.minLength(3), rules.maxLength(30)]),
-  mobile: schema.string({}, [rules.regex(/^\d{10}$/)]),
-  gender: schema.enum(["MALE", "FEMALE"]),
+  mobile: schema.number([
+    rules.range(1000000000, 9999999999)
+  ]),
+  gender: schema.string(),
   dateOfBirth: schema.date(),
 });
 
 export default class ProfilesController {
-  public async index({ response }: HttpContextContract) {
-    const profileData = await Profile.all();
-    return response.status(200).json({ data: profileData });
-  }
 
   public async store({ request, response }: HttpContextContract) {
     try {
       const payload = await request.validate({ schema: profileSchema });
-      const profile = await Profile.create({ ...payload });
+       const profile = await Profile.create({
+        userId: payload.userId,
+        name: payload.name,
+        mobile: payload.mobile,
+        gender: payload.gender as Gender, // Type assertion to 'Gender'
+        dateOfBirth: payload.dateOfBirth,
+      });
       return response
         .status(201)
-        .json({ message: "Profile created successfully.", data: profile });
+        .json({ message: "Profile created successfully.",  data:profile });
     } catch (error) {
       return response.badRequest(error);
     }
@@ -59,11 +68,17 @@ export default class ProfilesController {
       const profileId = params.id;
       const payload = await request.validate({ schema: profileSchema });
 
-      const profile: Profile | null = await Profile.findBy("id", profileId);
+      const profile = await Profile.findBy("id", profileId);
       if (!profile) {
         return response.status(404).json({ message: "Profile not found." });
       }
-      profile.merge(payload);
+      profile.merge({
+        userId: payload.userId,
+        name: payload.name,
+        mobile: payload.mobile,
+        gender: payload.gender as Gender,
+        dateOfBirth: payload.dateOfBirth,
+      });
       await profile.save();
 
       return response

@@ -29,7 +29,6 @@ Route.post("login", "AuthController.login");
 
 // Profile routes
 Route.group(() => {
-Route.get("user/profile", "ProfilesController.index")
 
 Route.get("user/profile/:userId", "ProfilesController.show");
 
